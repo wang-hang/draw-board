@@ -16,13 +16,30 @@
       margin: 0 auto;
       width: 600px;
     }
+    .btns {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    button {
+      width: 70px;
+      height: 40px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <canvas width="600" height="600" id="draw" ></canvas>
   </div>
-  <button id="clear-btn">clear</button>
+  <div class="btns">
+    <button id="clear-btn">clear</button>
+    <button id="bold-pen">加粗</button>
+    <button id="shin-pen">变细</button>
+  </div>
+
+
+  
+  <script src="/socket.io/socket.io.js"></script>
   <script src="./index.js"></script>
 </body>
 </html>

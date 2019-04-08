@@ -10,26 +10,26 @@
     const boardX = board.getBoundingClientRect().x // 画板左上角的坐标
     const boardY = board.getBoundingClientRect().y
 
+    const socket = io.connect('http://localhost:3000')
+
     let status = ''
     let preX = ''
     let preY = ''
+    let penWidth = 1;
+    let iDrawing = false
+    let remoteDrawing = false
 
-    function beginDraw(e) {
-      status = DRAWING
-      const { x, y } = utils.getXY(e.clientX, e.clientY)
+    ctx.strokeStyle = "red"
+
+    function leave() {
+      iDrawing = false
+    }
+    function beginDraw(x, y) {
       preX = x
       preY = y
     }
 
-    function endDraw(e) {
-      status = ''
-    }
-
-    function draw(e) {
-      if(status !== DRAWING) return;
-      const { x, y } = utils.getXY(e.clientX, e.clientY)
-      log(`当前鼠标坐标是 X:${x} Y:${y}`)
-
+    function draw(x, y) {
       ctx.beginPath()
       ctx.moveTo(preX, preY)
       ctx.lineTo(x, y)
@@ -39,10 +39,26 @@
       preX = x
       preY = y
 
+
     }
+
+    function endDraw(e) {
+      iDrawing = false
+    }
+
+    
 
     function clearBoard() {
       ctx.clearRect(0,0, W,H)
+    }
+
+    function boldPen() {
+      ctx.lineWidth = ++penWidth
+    }
+
+    function shinPen() {
+      if(penWidth === 1) return;
+      ctx.lineWidth = --penWidth
     }
 
 
@@ -55,12 +71,47 @@
       }
     }
 
-  
 
 
-    board.addEventListener('mousedown', beginDraw)
-    board.addEventListener('mouseup', endDraw)
-    board.addEventListener('mousemove', draw)
+
+    socket.on('beginDraw', function({x, y}) {
+        beginDraw(x, y)
+    })
+
+    socket.on('drawing', function(data) {
+      const { x, y } = data
+      draw(x, y)
+    })
+
+    socket.on('endDraw', function() {
+      endDraw()
+    })
+   
+
+
+    board.addEventListener('mousedown', function(e){
+      const { x, y } = utils.getXY(e.clientX, e.clientY)
+      beginDraw(x, y)
+      iDrawing = true
+      socket.emit('begin', {preX: x, preY: y})
+    })
+
+    board.addEventListener('mousemove', function(e){
+      if(iDrawing) {
+        const { x,y } = utils.getXY(e.clientX, e.clientY)
+        draw(x, y)
+        socket.emit('draw', {preX, preY, x, y})
+      }
+    })
+
+    board.addEventListener('mouseup', function(e) {
+      endDraw()
+      socket.emit('end')
+    })
+    
+    board.addEventListener('mouseleave', leave)
     document.getElementById('clear-btn').addEventListener('click', clearBoard)
+    document.getElementById('bold-pen').addEventListener('click', boldPen)
+    document.getElementById('shin-pen').addEventListener('click', shinPen)
   }
 })()
