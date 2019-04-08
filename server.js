@@ -1,18 +1,14 @@
-const app = require('express')()
+const express = require('express')
+const app = express()
 const server = require('http').Server(app)
 const io = require('socket.io')(server)
 
 server.listen(3000)
 
+app.use(express.static(__dirname + '/assets'))
+
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html')
-})
-app.get('/index.js', function(req, res) {
-  res.sendFile(__dirname + '/index.js')
-})
-
-app.get('/pen.png', function(req, res) {
-  res.sendFile(__dirname + '/pen.png')
 })
 
 io.on('connection', function(socket) {
